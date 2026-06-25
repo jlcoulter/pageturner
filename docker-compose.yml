@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: booktracker-db
+    environment:
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: default_database
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - booktracker-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U username -d default_database"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: booktracker-backend
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: username
+      DB_PASSWORD: password
+      DB_NAME: default_database
+      SSL_MODE: disable
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - booktracker-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend/web
+      dockerfile: Dockerfile
+    container_name: booktracker-frontend
+    environment:
+      PUBLIC_API_URL: http://backend:8080
+      ORIGIN: http://localhost:5173
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - booktracker-network
+    restart: unless-stopped
+    volumes:
+      - sqlite_data:/data
+
+volumes:
+  postgres_data:
+  sqlite_data:
+
+networks:
+  booktracker-network:
+    driver: bridge

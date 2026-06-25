@@ -1,0 +1,69 @@
+version: "2"
+
+sql:
+  - engine: "postgresql"
+    queries: "./internal/db/queries/"
+    schema: "./internal/db/schema/"
+    gen:
+      go:
+        package: "generated"
+        out: "./internal/db/generated/"
+        sql_package: "pgx/v5"
+
+        overrides:
+          - db_type: "uuid"
+            nullable: false
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+
+          - db_type: "uuid"
+            nullable: true
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+
+          - db_type: "timestamptz"
+            nullable: false
+            go_type:
+              import: "time"
+              type: "Time"
+
+          - db_type: "timestamptz"
+            nullable: true
+            go_type:
+              import: "database/sql"
+              type: "NullTime"
+
+          - db_type: "date"
+            nullable: false
+            go_type:
+              import: "time"
+              type: "Time"
+
+          - db_type: "date"
+            nullable: true
+            go_type:
+              import: "database/sql"
+              type: "NullTime"
+
+          - db_type: "pg_catalog.int4"
+            nullable: false
+            go_type: "int32"
+
+          - db_type: "pg_catalog.int4"
+            nullable: true
+            go_type:
+              import: "database/sql"
+              type: "NullInt32"
+
+          - db_type: "text"
+            nullable: false
+            go_type: "string"
+
+          - db_type: "text"
+            nullable: true
+            go_type:
+              import: "database/sql"
+              type: "NullString"
+

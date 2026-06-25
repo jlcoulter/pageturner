@@ -1,0 +1,8 @@
+*.db
+*.db-journal
+config.yml
+.git
+.gitignore
+*.md
+.DS_Store
+.vscode

@@ -1,0 +1,18 @@
+info:
+  name: post book
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{url}}/book"
+  body:
+    type: json
+    data: '{"book":"The hobbit","rating":8,"startDate":"2026-03-09","finishDate":"2026-03-24","pages":"432","thoughts":"This was a good book which lots of cool ideas in it. "}'
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,26 @@
+[
+  {
+    "book": "Example Book One",
+    "rating": "5",
+    "startDate": "2026-03-10",
+    "finishDate": "2026-03-13",
+    "pages": "300",
+    "thoughts": "A compelling read with well-developed characters and an engaging plot."
+  },
+  {
+    "book": "Example Book Two",
+    "rating": "4",
+    "startDate": "2026-02-01",
+    "finishDate": "2026-02-05",
+    "pages": "250",
+    "thoughts": "Solid world-building and an interesting premise."
+  },
+  {
+    "book": "Example Book Three",
+    "rating": "4",
+    "startDate": "2026-01-10",
+    "finishDate": "2026-01-18",
+    "pages": "400",
+    "thoughts": "Thought-provoking and well-researched."
+  }
+]

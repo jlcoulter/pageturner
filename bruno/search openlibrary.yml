@@ -1,0 +1,22 @@
+info:
+  name: search openlibrary
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{url}}/openlibrary/search"
+  body:
+    type: json
+    data: |-
+      {
+        "term": "the pelican brief",
+        "searchBy": "both"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

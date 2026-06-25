@@ -1,0 +1,8 @@
+config:
+  database:
+    host: "postgres"
+    port: 5432
+    username: "username"
+    password: "password"
+    dbname: "default_database"
+    sslmode: "disable"

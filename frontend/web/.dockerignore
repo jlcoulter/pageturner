@@ -1,0 +1,16 @@
+node_modules
+.git
+.gitignore
+*.md
+.DS_Store
+.vscode
+test
+tests
+e2e
+*.test.ts
+*.spec.ts
+playwright.config.ts
+vitest.config.ts
+.env
+.env.*
+!.env.example
