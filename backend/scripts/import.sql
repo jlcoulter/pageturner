@@ -1,4 +1,9 @@
 -- ---------------------------------------------------------
+-- 0. Ensure pg_trgm is available
+-- ---------------------------------------------------------
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- ---------------------------------------------------------
 -- 1. Session tuning for bulk operations
 -- ---------------------------------------------------------
 SET maintenance_work_mem = '4GB';
@@ -125,6 +130,14 @@ CREATE INDEX idx_search_documents_vector_new
 ON openlibrary.search_documents_new
 USING GIN(search_vector);
 
+CREATE INDEX idx_search_documents_title_trgm_new
+ON openlibrary.search_documents_new
+USING GIN (title gin_trgm_ops);
+
+CREATE INDEX idx_search_documents_authors_trgm_new
+ON openlibrary.search_documents_new
+USING GIN (author_names gin_trgm_ops);
+
 -- ---------------------------------------------------------
 -- 10. Add foreign keys without validation
 -- ---------------------------------------------------------
@@ -190,12 +203,44 @@ RESET temp_buffers;
 -- SEARCH QUERY
 -- =========================================================
 
-SELECT
-    work_id,
-    title,
-    author_names,
-    ts_rank(search_vector, plainto_tsquery($1)) AS rank
-FROM openlibrary.search_documents
-WHERE search_vector @@ plainto_tsquery($1)
+-- Combined FTS + trigram search:
+-- 1. websearch_to_tsquery for smarter query parsing (handles quotes, OR, -)
+-- 2. similarity() % operator for prefix/partial matching (finds "Pott" -> "Potter")
+-- 3. FTS results get ts_rank, trigram results get (similarity * 10)
+-- 4. UNION ALL deduplicates via NOT condition, final ORDER BY rank
+
+(
+    SELECT
+        work_id,
+        title,
+        author_names,
+        ts_rank(search_vector, websearch_to_tsquery($1)) AS rank
+    FROM
+        openlibrary.search_documents
+    WHERE
+        search_vector @@ websearch_to_tsquery($1)
+    ORDER BY
+        rank DESC
+    LIMIT 20
+)
+UNION ALL
+(
+    SELECT
+        work_id,
+        title,
+        author_names,
+        (similarity(title, $1) + similarity(author_names, $1)) * 10 AS rank
+    FROM
+        openlibrary.search_documents
+    WHERE
+        title % $1
+        OR author_names % $1
+        AND NOT (
+            search_vector @@ websearch_to_tsquery($1)
+        )
+    ORDER BY
+        rank DESC
+    LIMIT 20
+)
 ORDER BY rank DESC
 LIMIT 20;
