@@ -62,7 +62,7 @@
 <div class="w-full px-6 py-6 pr-2 pl-20">
 	<h1 class="mb-6 text-3xl font-bold">Commonplace Book</h1>
 
-	<div class="grid grid-cols-[repeat(auto-fit,minmax(420px,1fr))] justify-items-center gap-6">
+	<div class="grid grid-cols-3 gap-2">
 		{#each entries as entry}
 			<article class="flex flex-col rounded-lg border bg-base-100 p-4 shadow-sm">
 				<h2 class="mb-2 text-lg font-semibold">{entry.book}</h2>
