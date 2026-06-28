@@ -16,7 +16,7 @@ SELECT
     title,
     author_names,
     (ts_rank(search_vector, websearch_to_tsquery($1))
-     + similarity(title, $1) * 5) AS rank
+     + similarity(title, $1) * 5)::float8 AS rank
 FROM
     openlibrary.search_documents
 WHERE
@@ -30,7 +30,7 @@ type SearchOpenLibraryRow struct {
 	WorkID      string
 	Title       sql.NullString
 	AuthorNames sql.NullString
-	Rank        int32
+	Rank        float64
 }
 
 // Full-text search with title similarity boost for relevance.
@@ -66,7 +66,7 @@ SELECT
     work_id,
     title,
     author_names,
-    similarity(title, $1) * 10 AS rank
+    (similarity(title, $1) * 10)::float8 AS rank
 FROM
     openlibrary.search_documents
 WHERE
@@ -85,7 +85,7 @@ type SearchOpenLibraryPrefixRow struct {
 	WorkID      string
 	Title       sql.NullString
 	AuthorNames sql.NullString
-	Rank        int32
+	Rank        float64
 }
 
 // Trigram similarity search for short queries where FTS returns nothing.

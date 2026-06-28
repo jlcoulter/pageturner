@@ -7,7 +7,7 @@ SELECT
     title,
     author_names,
     (ts_rank(search_vector, websearch_to_tsquery($1))
-     + similarity(title, $1) * 5) AS rank
+     + similarity(title, $1) * 5)::float8 AS rank
 FROM
     openlibrary.search_documents
 WHERE
@@ -23,7 +23,7 @@ SELECT
     work_id,
     title,
     author_names,
-    similarity(title, $1) * 10 AS rank
+    (similarity(title, $1) * 10)::float8 AS rank
 FROM
     openlibrary.search_documents
 WHERE
