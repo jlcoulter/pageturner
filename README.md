@@ -120,6 +120,17 @@ pageturner/
 └── docker-compose.yml
 ```
 
+## OpenLibrary Data Import
+
+The Import page lets you upload OpenLibrary dump files to populate the search database. You'll need both the authors and works files:
+
+1. **Authors first** — upload the authors dump file
+2. **Works second** — upload the works dump file
+
+Dump files are available at [openlibrary.org/developers/dumps](https://openlibrary.org/developers/dumps). Download the **authors** and **works** tab-separated JSON dumps.
+
+The import streams data into staging tables, then the existing `import.sql` script promotes it to production with an atomic swap.
+
 ## License
 
 MIT
