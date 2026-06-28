@@ -1,11 +1,13 @@
 -- name: SearchOpenLibrary :many
--- Full-text search using websearch_to_tsquery for smart query parsing
--- (handles quotes, OR, negation). Fast GIN index scan.
+-- Full-text search with title similarity boost for relevance.
+-- FTS finds candidates fast (GIN index), then we boost exact/prefix
+-- title matches so "The Hobbit" ranks above "Hobbit Cookery".
 SELECT
     work_id,
     title,
     author_names,
-    ts_rank(search_vector, websearch_to_tsquery($1)) AS rank
+    (ts_rank(search_vector, websearch_to_tsquery($1))
+     + similarity(title, $1) * 5) AS rank
 FROM
     openlibrary.search_documents
 WHERE
@@ -15,9 +17,8 @@ ORDER BY
 LIMIT 20;
 
 -- name: SearchOpenLibraryPrefix :many
--- Trigram similarity search for short queries / prefix matching
--- where full-text search can't help (e.g. "Pott" matching "Potter").
--- Only used as a fallback for queries <= 3 characters.
+-- Trigram similarity search for short queries where FTS returns nothing.
+-- Only used as fallback for queries <= 3 characters.
 SELECT
     work_id,
     title,
