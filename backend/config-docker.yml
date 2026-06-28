@@ -2,7 +2,7 @@ config:
   database:
     host: "postgres"
     port: 5432
-    username: "username"
-    password: "password"
-    dbname: "default_database"
+    pageturner: "pageturner"
+    pageturner: "pageturner"
+    dbname: "pageturner"
     sslmode: "disable"

@@ -48,7 +48,7 @@ type Work struct {
 
 func ImportOpenLibraryData(ctx context.Context) {
 
-	connStr := "postgres://username:password@10.1.1.50:5432/default_database?sslmode=disable"
+	connStr := "postgres://username:password@10.1.1.50:5432/pageturner?sslmode=disable"
 
 	cfg, err := pgxpool.ParseConfig(connStr)
 	if err != nil {

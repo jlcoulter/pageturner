@@ -97,9 +97,9 @@ func main() {
 func getDatabaseURL() string {
 	host := getEnv("DB_HOST", "localhost")
 	port := getEnv("DB_PORT", "5432")
-	user := getEnv("DB_USER", "username")
-	password := getEnv("DB_PASSWORD", "password")
-	dbname := getEnv("DB_NAME", "default_database")
+	user := getEnv("DB_USER", "pageturner")
+	password := getEnv("DB_PASSWORD", "pageturner")
+	dbname := getEnv("DB_NAME", "pageturner")
 	sslmode := getEnv("SSL_MODE", "disable")
 
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",

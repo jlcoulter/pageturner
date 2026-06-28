@@ -1,19 +1,19 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: booktracker-db
+    container_name: pageturner-db
     environment:
-      POSTGRES_USER: username
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: default_database
+      POSTGRES_USER: ${DB_USER:-pageturner}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-pageturner}
+      POSTGRES_DB: ${DB_NAME:-pageturner}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
-      - booktracker-network
+      - pageturner-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U username -d default_database"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-pageturner} -d ${DB_NAME:-pageturner}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -22,13 +22,13 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: booktracker-backend
+    container_name: pageturner-backend
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USER: username
-      DB_PASSWORD: password
-      DB_NAME: default_database
+      DB_USER: ${DB_USER:-pageturner}
+      DB_PASSWORD: ${DB_PASSWORD:-pageturner}
+      DB_NAME: ${DB_NAME:-pageturner}
       SSL_MODE: disable
     ports:
       - "8080:8080"
@@ -36,14 +36,14 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - booktracker-network
+      - pageturner-network
     restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend/web
       dockerfile: Dockerfile
-    container_name: booktracker-frontend
+    container_name: pageturner-frontend
     environment:
       PUBLIC_API_URL: http://backend:8080
       ORIGIN: http://localhost:5173
@@ -53,7 +53,7 @@ services:
     depends_on:
       - backend
     networks:
-      - booktracker-network
+      - pageturner-network
     restart: unless-stopped
     volumes:
       - sqlite_data:/data
@@ -63,5 +63,5 @@ volumes:
   sqlite_data:
 
 networks:
-  booktracker-network:
+  pageturner-network:
     driver: bridge
