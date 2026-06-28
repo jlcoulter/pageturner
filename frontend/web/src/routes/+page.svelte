@@ -5,6 +5,9 @@
 	let inputValue = '';
 
 	let selectedBook = '';
+	let manualEntry = false;
+	let manualTitle = '';
+	let manualAuthor = '';
 	let rating = 0;
 	let startDate = '';
 	let finishDate = '';
@@ -12,148 +15,219 @@
 	$: pages = pages.replace(/[^0-9]/g, ''); // Ensure only numbers
 	let thoughts = '';
 
-async function submit() {
-	const bookToSave = selectedBook || searchTerm;
+	$: bookTitle = manualEntry
+		? manualAuthor.trim()
+			? `${manualTitle.trim()} by ${manualAuthor.trim()}`
+			: manualTitle.trim()
+		: selectedBook || searchTerm;
 
-	const data = {
-		book: bookToSave,
-		rating,
-		startDate,
-		finishDate,
-		pages,
-		thoughts
-	};
+	async function submit() {
+		const data = {
+			book: bookTitle,
+			rating,
+			startDate,
+			finishDate,
+			pages,
+			thoughts
+		};
 
-	try {
-		const apiUrl = import.meta.env.PUBLIC_API_URL || 'http://localhost:8080';
-		const res = await fetch(`${apiUrl}/api/book`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(data)
-		});
+		try {
+			const apiUrl = import.meta.env.PUBLIC_API_URL || 'http://localhost:8080';
+			const res = await fetch(`${apiUrl}/api/book`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(data)
+			});
 
-		if (!res.ok) {
-			const text = await res.text();
-			console.error('Failed to save book:', text);
-			return;
+			if (!res.ok) {
+				const text = await res.text();
+				console.error('Failed to save book:', text);
+				return;
+			}
+
+			const result = await res.json();
+			console.log('Book entry saved successfully:', result);
+
+			// Clear form
+			selectedBook = '';
+			searchTerm = '';
+			manualTitle = '';
+			manualAuthor = '';
+			manualEntry = false;
+			rating = 0;
+			startDate = '';
+			finishDate = '';
+			pages = '';
+			thoughts = '';
+		} catch (err) {
+			console.error('Error saving book entry:', err);
 		}
-
-		const result = await res.json();
-		console.log('Book entry saved successfully:', result);
-
-		// Optional: clear form
-		selectedBook = '';
-		searchTerm = '';
-		rating = 0;
-		startDate = '';
-		finishDate = '';
-		pages = '';
-		thoughts = '';
-	} catch (err) {
-		console.error('Error saving book entry:', err);
 	}
-}
+
 	// Search functionality
 	let searchTerm = '';
 	type OpenLibraryBook = { work_title: string; author_name: string; work_id: string };
 	let searchResults: OpenLibraryBook[] = [];
 	let searchTimeout: NodeJS.Timeout;
 	let loading = false;
+	let searchPerformed = false;
 
-async function handleSearch() {
-	clearTimeout(searchTimeout);
-	loading = true;
+	async function handleSearch() {
+		clearTimeout(searchTimeout);
+		loading = true;
+		manualEntry = false;
 
-	searchTimeout = setTimeout(async () => {
-		const term = searchTerm.trim();
+		searchTimeout = setTimeout(async () => {
+			const term = searchTerm.trim();
 
-		if (!term) {
-			searchResults = [];
-			loading = false;
-			return;
-		}
-
-		try {
-			const apiUrl = import.meta.env.PUBLIC_API_URL || 'http://localhost:8080';
-			const res = await fetch(`${apiUrl}/api/openlibrary/search`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ term, searchBy: 'both' })
-			});
-
-			if (!res.ok) {
-				console.error('Search failed:', await res.text());
+			if (!term) {
 				searchResults = [];
+				searchPerformed = false;
 				loading = false;
 				return;
 			}
 
-			const results: OpenLibraryBook[] = await res.json();
+			try {
+				const apiUrl = import.meta.env.PUBLIC_API_URL || 'http://localhost:8080';
+				const res = await fetch(`${apiUrl}/api/openlibrary/search`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ term, searchBy: 'both' })
+				});
 
-                    searchResults = results.map((r: any) => ({
-	work_id: r.WorkID,
-	work_title: r.Title?.Valid ? r.Title.String : 'Untitled',
-	author_name: r.AuthorNames?.Valid ? r.AuthorNames.String : 'Unknown'
-}));
-		} catch (err) {
-			console.error('Error during search:', err);
-			searchResults = [];
-		} finally {
-			loading = false;
-		}
-	}, 300); // debounce
-}
+				if (!res.ok) {
+					console.error('Search failed:', await res.text());
+					searchResults = [];
+					searchPerformed = true;
+					loading = false;
+					return;
+				}
+
+				const results: OpenLibraryBook[] = await res.json();
+
+				searchResults = results.map((r: any) => ({
+					work_id: r.WorkID,
+					work_title: r.Title?.Valid ? r.Title.String : 'Untitled',
+					author_name: r.AuthorNames?.Valid ? r.AuthorNames.String : 'Unknown'
+				}));
+				searchPerformed = true;
+			} catch (err) {
+				console.error('Error during search:', err);
+				searchResults = [];
+				searchPerformed = true;
+			} finally {
+				loading = false;
+			}
+		}, 300); // debounce
+	}
 
 	function selectBook(book: OpenLibraryBook) {
 		selectedBook = book.work_title;
 		searchTerm = book.work_title;
 		searchResults = [];
+		searchPerformed = false;
 	}
 
-	
+	function enterManually() {
+		manualEntry = true;
+		manualTitle = searchTerm;
+		searchResults = [];
+		searchPerformed = false;
+	}
+
+	function cancelManual() {
+		manualEntry = false;
+		manualTitle = '';
+		manualAuthor = '';
+	}
 </script>
 
 <div class="mx-auto max-w-3xl space-y-6">
 	<h1 class="text-3xl font-bold">Record a Book</h1>
 
-	<!-- Book search -->
-	<div class="form-control relative w-full">
-		<label class="label">
-			<span class="label-text">Search Book</span>
-		</label>
-		<input
-			type="text"
-			bind:value={searchTerm}
-			on:input={handleSearch}
-			class="input-bordered input w-full"
-			placeholder="Start typing a book title..."
-		/>
-
-		{#if loading}
-			<div class="absolute z-50 mt-1 w-full rounded border bg-white pl-6 text-gray-500 shadow-lg">
-				<span class="loading loading-ring loading-md"></span>
+	{#if manualEntry}
+		<!-- Manual entry mode -->
+		<div class="space-y-4">
+			<div class="flex items-center justify-between">
+				<h2 class="text-lg font-semibold">Enter book manually</h2>
+				<button class="btn btn-sm btn-ghost" on:click={cancelManual}>Cancel</button>
 			</div>
-		{:else if searchResults.length > 0}
-			<ul
-				class="absolute z-50 mt-1 max-h-40 w-full overflow-auto rounded border bg-white shadow-lg"
-				style="top:100%; left:0;"
-			>
-				{#each searchResults as book}
-					<li
-						class="flex cursor-pointer justify-between p-2 hover:bg-gray-200"
-						on:click={() => selectBook(book)}
-					>
-						<span>{book.work_title}</span>
-						<span class="text-sm text-gray-500">by {book.author_name}</span>
-					</li>
-				{/each}
-			</ul>
-		{/if}
-	</div>
+			<div class="form-control w-full">
+				<label class="label"><span class="label-text">Title</span></label>
+				<input
+					type="text"
+					bind:value={manualTitle}
+					class="input-bordered input w-full"
+					placeholder="Book title"
+				/>
+			</div>
+			<div class="form-control w-full">
+				<label class="label"><span class="label-text">Author</span></label>
+				<input
+					type="text"
+					bind:value={manualAuthor}
+					class="input-bordered input w-full"
+					placeholder="Author name (optional)"
+				/>
+			</div>
+		</div>
+	{:else}
+		<!-- Search mode -->
+		<div class="form-control relative w-full">
+			<label class="label">
+				<span class="label-text">Search Book</span>
+			</label>
+			<input
+				type="text"
+				bind:value={searchTerm}
+				on:input={handleSearch}
+				class="input-bordered input w-full"
+				placeholder="Start typing a book title or author..."
+			/>
+
+			{#if loading}
+				<div class="absolute z-50 mt-1 w-full rounded border bg-white pl-6 text-gray-500 shadow-lg">
+					<span class="loading loading-ring loading-md"></span>
+				</div>
+			{:else if searchResults.length > 0}
+				<ul
+					class="absolute z-50 mt-1 max-h-40 w-full overflow-auto rounded border bg-white shadow-lg"
+					style="top:100%; left:0;"
+				>
+					{#each searchResults as book}
+						<li
+							class="flex cursor-pointer justify-between p-2 hover:bg-gray-200"
+							on:click={() => selectBook(book)}
+						>
+							<span>{book.work_title}</span>
+							<span class="text-sm text-gray-500">by {book.author_name}</span>
+						</li>
+					{/each}
+				</ul>
+			{:else if searchPerformed && searchTerm.trim()}
+				<div class="mt-2 rounded border bg-amber-50 p-3">
+					<p class="text-sm text-amber-800">No results found for "<strong>{searchTerm}</strong>".</p>
+					<button class="btn btn-sm btn-outline btn-accent mt-2" on:click={enterManually}>
+						Enter manually
+					</button>
+				</div>
+			{/if}
+		</div>
+	{/if}
+
+	<!-- Show selected book or manual entry title -->
+	{#if !manualEntry && selectedBook}
+		<div class="rounded border bg-green-50 p-3">
+			<p class="text-sm text-green-800">Selected: <strong>{selectedBook}</strong></p>
+			<button class="btn btn-xs btn-ghost mt-1" on:click={() => { selectedBook = ''; searchTerm = ''; }}>
+				Clear
+			</button>
+		</div>
+	{/if}
 
 	<!-- Start and Finish dates -->
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -225,7 +299,7 @@ async function handleSearch() {
 				class="mask bg-purple-300 mask-heart"
 				aria-label="5 star"
 			/>
-						<input
+					<input
 				type="radio"
 				name="rating"
 				value={6}
@@ -247,7 +321,6 @@ async function handleSearch() {
 				value={8}
 				bind:group={rating}
 				class="mask bg-emerald-100 mask-heart"
-				
 				aria-label="8 star"
 			/>
 			<input

@@ -20,9 +20,7 @@ func NewBookRepo(q *generated.Queries) *BookRepo {
 }
 
 func (r *BookRepo) SearchBooks(ctx context.Context, term string) ([]generated.Book, error) {
-	// If term provided, filter by it (implementation depends on your query)
-	// For now, return all books - the filtering should be done at DB level
-	return r.q.SearchBooksByTerm(ctx)
+	return r.q.SearchBooksByTerm(ctx, term)
 }
 
 func (r *BookRepo) GetAllBooks(ctx context.Context) ([]generated.Book, error) {

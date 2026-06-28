@@ -112,10 +112,14 @@ func (q *Queries) InsertBook(ctx context.Context, arg InsertBookParams) error {
 const searchBooksByTerm = `-- name: SearchBooksByTerm :many
 SELECT id, book, rating, start_date, finish_date, pages, thoughts, created_at, updated_at
 FROM books
+WHERE
+    book ILIKE '%' || $1 || '%'
+   OR thoughts ILIKE '%' || $1 || '%'
+ORDER BY created_at DESC
 `
 
-func (q *Queries) SearchBooksByTerm(ctx context.Context) ([]Book, error) {
-	rows, err := q.db.Query(ctx, searchBooksByTerm)
+func (q *Queries) SearchBooksByTerm(ctx context.Context, term string) ([]Book, error) {
+	rows, err := q.db.Query(ctx, searchBooksByTerm, term)
 	if err != nil {
 		return nil, err
 	}
