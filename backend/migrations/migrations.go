@@ -18,7 +18,7 @@ import (
 )
 
 func buildConnString() string {
-	host := getEnv("DB_HOST", "10.1.1.50")
+	host := getEnv("DB_HOST", "localhost")
 	port := getEnv("DB_PORT", "5432")
 	user := getEnv("DB_USER", "username")
 	password := getEnv("DB_PASSWORD", "password")

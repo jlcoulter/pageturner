@@ -229,7 +229,7 @@ func validateBookEntry(entry types.BookEntry) error {
 		return errors.New("book title is required")
 	}
 	if entry.Rating < 0 || entry.Rating > 10 {
-		return errors.New("rating must be between 0 and 5")
+		return errors.New("rating must be between 0 and 10")
 	}
 	return nil
 }
