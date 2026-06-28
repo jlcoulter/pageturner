@@ -113,11 +113,6 @@ func (h *ImportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (h *ImportHandler) importStream(r *http.Request, reader io.Reader, mode string) error {
 	ctx := r.Context()
-	conn, err := h.pool.Acquire(ctx)
-	if err != nil {
-		return err
-	}
-	defer conn.Release()
 
 	lines := make(chan string, 50000)
 	authorCh := make(chan authorRow, 50000)
@@ -157,6 +152,12 @@ func (h *ImportHandler) importStream(r *http.Request, reader io.Reader, mode str
 		insertWG.Add(1)
 		go func() {
 			defer insertWG.Done()
+			conn, err := h.pool.Acquire(ctx)
+			if err != nil {
+				slog.Error("failed to acquire connection", "error", err)
+				return
+			}
+			defer conn.Release()
 			batchInsert(ctx, conn, "openlibrary", "authors_stage",
 				[]string{"id", "author_name"}, authorCh, 10000)
 		}()
@@ -164,12 +165,24 @@ func (h *ImportHandler) importStream(r *http.Request, reader io.Reader, mode str
 		insertWG.Add(1)
 		go func() {
 			defer insertWG.Done()
+			conn, err := h.pool.Acquire(ctx)
+			if err != nil {
+				slog.Error("failed to acquire connection for works", "error", err)
+				return
+			}
+			defer conn.Release()
 			batchInsert(ctx, conn, "openlibrary", "works_stage",
 				[]string{"id", "title"}, workCh, 10000)
 		}()
 		insertWG.Add(1)
 		go func() {
 			defer insertWG.Done()
+			conn, err := h.pool.Acquire(ctx)
+			if err != nil {
+				slog.Error("failed to acquire connection for work_authors", "error", err)
+				return
+			}
+			defer conn.Release()
 			batchInsert(ctx, conn, "openlibrary", "work_authors_stage",
 				[]string{"work_id", "author_id"}, workAuthorCh, 10000)
 		}()
