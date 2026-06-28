@@ -31,13 +31,23 @@
 	}
 
 	let entries: Entry[] = [];
+	let expanded: Set<string> = new Set();
 	let loading = true;
 	let error: string | null = null;
+
+	function toggleExpand(id: string) {
+		if (expanded.has(id)) {
+			expanded.delete(id);
+		} else {
+			expanded.add(id);
+		}
+		expanded = expanded; // trigger reactivity
+	}
 
 	onMount(async () => {
 		try {
 			const apiUrl = import.meta.env.PUBLIC_API_URL || 'http://localhost:8080';
-		const res = await fetch(`${apiUrl}/api/books`);
+			const res = await fetch(`${apiUrl}/api/books`);
 			if (!res.ok) throw new Error(`Request failed: ${res.status}`);
 
 			const data: ApiBook[] = await res.json();
@@ -67,9 +77,20 @@
 			<article class="flex flex-col rounded-lg border bg-base-100 p-4 shadow-sm">
 				<h2 class="mb-2 text-lg font-semibold">{entry.book}</h2>
 
-				<div class="prose max-w-none flex-1">
+				<div
+					class="prose max-w-none flex-1 {expanded.has(entry.id) ? '' : 'line-clamp-6'}"
+				>
 					{@html entry.thoughts}
 				</div>
+
+				{#if entry.thoughts && entry.thoughts.length > 300}
+					<button
+						class="btn btn-ghost btn-xs mt-1 self-start"
+						on:click={() => toggleExpand(entry.id)}
+					>
+						{expanded.has(entry.id) ? 'Show less' : 'Read more'}
+					</button>
+				{/if}
 
 				<div class="mt-3 flex flex-col gap-1 text-sm opacity-70">
 					<div class="flex gap-4">
