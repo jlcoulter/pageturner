@@ -13,16 +13,13 @@ A self-hosted book tracking application with ratings, reading stats, and OpenLib
 ## Tech Stack
 
 - **Backend**: Go, chi, pgx/v5, sqlc, goose, slog
-- **Frontend**: SvelteKit, TypeScript, Tailwind CSS, Better Auth
-- **Database**: PostgreSQL 16 (app data), SQLite (auth)
+- **Frontend**: SvelteKit, TypeScript, Tailwind CSS, DaisyUI
+- **Database**: PostgreSQL 16
 - **Testing**: Playwright (e2e), Bruno (API)
 
 ## Quick Start
 
 ```bash
-# Generate an auth secret
-export BETTER_AUTH_SECRET=$(openssl rand -hex 16)
-
 # Build and start all services
 docker compose up --build
 ```
@@ -54,7 +51,6 @@ Frontend:
 
 ```bash
 PUBLIC_API_URL=http://localhost:8080  # Backend API URL
-BETTER_AUTH_SECRET=                    # Auth signing key
 ORIGIN=http://localhost:5173          # SvelteKit origin
 ```
 
@@ -124,12 +120,11 @@ pageturner/
 
 The Import page lets you upload OpenLibrary dump files to populate the search database. You'll need both the authors and works files:
 
-1. **Authors first** — upload the authors dump file
-2. **Works second** — upload the works dump file
+1. **Authors first** — upload the authors dump file (.txt or .gz)
+2. **Works second** — upload the works dump file (.txt or .gz)
+3. **Promote to Production** — click the button to build search indexes and swap data into production
 
 Dump files are available at [openlibrary.org/developers/dumps](https://openlibrary.org/developers/dumps). Download the **authors** and **works** tab-separated JSON dumps.
-
-The import streams data into staging tables, then the existing `import.sql` script promotes it to production with an atomic swap.
 
 ## License
 
