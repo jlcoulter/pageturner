@@ -63,10 +63,9 @@ func (h *ImportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Limit upload to 2GB
-	r.Body = http.MaxBytesReader(w, r.Body, 2<<30)
-
-	if err := r.ParseMultipartForm(32 << 20); err != nil {
+	// Limit upload to 5GB total, buffer up to 256MB in memory for multipart parsing
+	r.Body = http.MaxBytesReader(w, r.Body, 5<<30)
+	if err := r.ParseMultipartForm(256 << 20); err != nil {
 		slog.Error("failed to parse multipart form", "error", err)
 		http.Error(w, "failed to parse form", http.StatusBadRequest)
 		return
