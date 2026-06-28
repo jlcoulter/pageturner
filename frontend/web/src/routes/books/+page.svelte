@@ -22,7 +22,8 @@
   let rows: Book[] = [];
 
   onMount(async () => {
-    const res = await fetch('http://localhost:8080/api/books');
+    const apiUrl = import.meta.env.PUBLIC_API_URL || 'http://localhost:8080';
+    const res = await fetch(`${apiUrl}/api/books`);
     const data: ApiBook[] = await res.json();
 
     rows = data.map((b) => ({

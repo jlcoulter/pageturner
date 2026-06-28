@@ -27,7 +27,8 @@
 
 	onMount(async () => {
 		try {
-			const res = await fetch('http://localhost:8080/api/books');
+			const apiUrl = import.meta.env.PUBLIC_API_URL || 'http://localhost:8080';
+		const res = await fetch(`${apiUrl}/api/books`);
 			if (!res.ok) throw new Error(`Request failed: ${res.status}`);
 
 			const data: ApiBook[] = await res.json();
