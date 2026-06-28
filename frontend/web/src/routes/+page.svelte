@@ -2,8 +2,10 @@
 	import 'prosekit/basic/style.css';
 	import 'prosekit/basic/typography.css';
 
+	type Mode = 'manual' | 'search';
+	let mode: Mode = 'manual';
+
 	let selectedBook = '';
-	let manualEntry = false;
 	let manualTitle = '';
 	let manualAuthor = '';
 	let rating = 0;
@@ -13,7 +15,7 @@
 	$: pages = pages.replace(/[^0-9]/g, '');
 	let thoughts = '';
 
-	$: bookTitle = manualEntry
+	$: bookTitle = mode === 'manual'
 		? manualAuthor.trim()
 			? `${manualTitle.trim()} by ${manualAuthor.trim()}`
 			: manualTitle.trim()
@@ -53,7 +55,6 @@
 			searchTerm = '';
 			manualTitle = '';
 			manualAuthor = '';
-			manualEntry = false;
 			rating = 0;
 			startDate = '';
 			finishDate = '';
@@ -75,7 +76,6 @@
 	async function handleSearch() {
 		clearTimeout(searchTimeout);
 		loading = true;
-		manualEntry = false;
 
 		searchTimeout = setTimeout(async () => {
 			const term = searchTerm.trim();
@@ -130,30 +130,38 @@
 		searchPerformed = false;
 	}
 
-	function enterManually() {
-		manualEntry = true;
-		manualTitle = searchTerm;
+	function switchMode(newMode: Mode) {
+		mode = newMode;
 		searchResults = [];
 		searchPerformed = false;
-	}
-
-	function cancelManual() {
-		manualEntry = false;
-		manualTitle = '';
-		manualAuthor = '';
+		loading = false;
 	}
 </script>
 
 <div class="mx-auto max-w-3xl space-y-6">
-	<h1 class="text-3xl font-bold">Record a Book</h1>
+	<div class="flex items-center justify-between">
+		<h1 class="text-3xl font-bold">Record a Book</h1>
+		<div class="join">
+			<button
+				class="btn join-item btn-sm"
+				class:btn-active={mode === 'manual'}
+				on:click={() => switchMode('manual')}
+			>
+				Manual
+			</button>
+			<button
+				class="btn join-item btn-sm"
+				class:btn-active={mode === 'search'}
+				on:click={() => switchMode('search')}
+			>
+				Search
+			</button>
+		</div>
+	</div>
 
-	{#if manualEntry}
+	{#if mode === 'manual'}
 		<!-- Manual entry mode -->
 		<div class="space-y-4">
-			<div class="flex items-center justify-between">
-				<h2 class="text-lg font-semibold">Enter book manually</h2>
-				<button class="btn btn-sm btn-ghost" on:click={cancelManual}>Cancel</button>
-			</div>
 			<div class="form-control w-full">
 				<label class="label"><span class="label-text">Title</span></label>
 				<input
@@ -209,23 +217,16 @@
 			{:else if searchPerformed && searchTerm.trim() && !selectedBook}
 				<div class="mt-2 rounded border bg-amber-50 p-3">
 					<p class="text-sm text-amber-800">No results found for "<strong>{searchTerm}</strong>".</p>
-					<button class="btn btn-sm btn-outline btn-accent mt-2" on:click={enterManually}>
+					<button class="btn btn-sm btn-outline btn-accent mt-2" on:click={() => switchMode('manual')}>
 						Enter manually
 					</button>
 				</div>
 			{/if}
 		</div>
-
-		<!-- Always-visible manual entry link -->
-		{#if !selectedBook && searchTerm.trim()}
-			<button class="btn btn-sm btn-ghost" on:click={enterManually}>
-				Can't find your book? Enter it manually
-			</button>
-		{/if}
 	{/if}
 
 	<!-- Show selected book -->
-	{#if !manualEntry && selectedBook}
+	{#if mode === 'search' && selectedBook}
 		<div class="rounded border bg-green-50 p-3">
 			<p class="text-sm text-green-800">Selected: <strong>{selectedBook}</strong></p>
 			<button class="btn btn-xs btn-ghost mt-1" on:click={() => { selectedBook = ''; searchTerm = ''; }}>
