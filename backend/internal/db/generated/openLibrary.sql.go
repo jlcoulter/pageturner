@@ -15,16 +15,20 @@ SELECT
     work_id,
     title,
     author_names,
-    (ts_rank(search_vector, websearch_to_tsquery($1))
-     + similarity(title, $1) * 5)::float8 AS rank
+    (ts_rank(search_vector, to_tsquery('english', $1)) + similarity(title, $2::text) * 5)::float8 AS rank
 FROM
     openlibrary.search_documents
 WHERE
-    search_vector @@ websearch_to_tsquery($1)
+    search_vector @@ to_tsquery('english', $1)
 ORDER BY
     rank DESC
 LIMIT 20
 `
+
+type SearchOpenLibraryParams struct {
+	ToTsquery string
+	Column2   string
+}
 
 type SearchOpenLibraryRow struct {
 	WorkID      string
@@ -33,11 +37,11 @@ type SearchOpenLibraryRow struct {
 	Rank        float64
 }
 
-// Full-text search with title similarity boost for relevance.
-// FTS finds candidates fast (GIN index), then we boost exact/prefix
-// title matches so "The Hobbit" ranks above "Hobbit Cookery".
-func (q *Queries) SearchOpenLibrary(ctx context.Context, websearchToTsquery string) ([]SearchOpenLibraryRow, error) {
-	rows, err := q.db.Query(ctx, searchOpenLibrary, websearchToTsquery)
+// Full-text search with title similarity boost.
+// $1 = combined tsquery string (built in Go from websearch + prefix)
+// $2 = original search term for similarity ranking
+func (q *Queries) SearchOpenLibrary(ctx context.Context, arg SearchOpenLibraryParams) ([]SearchOpenLibraryRow, error) {
+	rows, err := q.db.Query(ctx, searchOpenLibrary, arg.ToTsquery, arg.Column2)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +93,6 @@ type SearchOpenLibraryPrefixRow struct {
 }
 
 // Trigram similarity search for short queries where FTS returns nothing.
-// Only used as fallback for queries <= 3 characters.
 func (q *Queries) SearchOpenLibraryPrefix(ctx context.Context, similarity interface{}) ([]SearchOpenLibraryPrefixRow, error) {
 	rows, err := q.db.Query(ctx, searchOpenLibraryPrefix, similarity)
 	if err != nil {
