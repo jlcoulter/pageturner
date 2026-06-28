@@ -2,8 +2,6 @@
 	import 'prosekit/basic/style.css';
 	import 'prosekit/basic/typography.css';
 
-	let inputValue = '';
-
 	let selectedBook = '';
 	let manualEntry = false;
 	let manualTitle = '';
@@ -12,7 +10,7 @@
 	let startDate = '';
 	let finishDate = '';
 	let pages = '';
-	$: pages = pages.replace(/[^0-9]/g, ''); // Ensure only numbers
+	$: pages = pages.replace(/[^0-9]/g, '');
 	let thoughts = '';
 
 	$: bookTitle = manualEntry
@@ -122,7 +120,7 @@
 			} finally {
 				loading = false;
 			}
-		}, 300); // debounce
+		}, 300);
 	}
 
 	function selectBook(book: OpenLibraryBook) {
@@ -208,7 +206,7 @@
 						</li>
 					{/each}
 				</ul>
-			{:else if searchPerformed && searchTerm.trim()}
+			{:else if searchPerformed && searchTerm.trim() && !selectedBook}
 				<div class="mt-2 rounded border bg-amber-50 p-3">
 					<p class="text-sm text-amber-800">No results found for "<strong>{searchTerm}</strong>".</p>
 					<button class="btn btn-sm btn-outline btn-accent mt-2" on:click={enterManually}>
@@ -217,9 +215,16 @@
 				</div>
 			{/if}
 		</div>
+
+		<!-- Always-visible manual entry link -->
+		{#if !selectedBook && searchTerm.trim()}
+			<button class="btn btn-sm btn-ghost" on:click={enterManually}>
+				Can't find your book? Enter it manually
+			</button>
+		{/if}
 	{/if}
 
-	<!-- Show selected book or manual entry title -->
+	<!-- Show selected book -->
 	{#if !manualEntry && selectedBook}
 		<div class="rounded border bg-green-50 p-3">
 			<p class="text-sm text-green-800">Selected: <strong>{selectedBook}</strong></p>
@@ -259,86 +264,16 @@
 	<div class="form-control w-full">
 		<label class="label"><span class="label-text">Your Rating: </span>
 		<div class="rating gap-1">
-			<input
-				type="radio"
-				name="rating"
-				value={1}
-				bind:group={rating}
-				class="mask bg-amber-100 mask-heart"
-				aria-label="1 star"
-			/>
-			<input
-				type="radio"
-				name="rating"
-				value={2}
-				bind:group={rating}
-				class="mask bg-rose-300 mask-heart"
-				aria-label="2 star"
-			/>
-			<input
-				type="radio"
-				name="rating"
-				value={3}
-				bind:group={rating}
-				class="mask bg-teal-100 mask-heart"
-				aria-label="3 star"
-			/>
-			<input
-				type="radio"
-				name="rating"
-				value={4}
-				bind:group={rating}
-				class="mask bg-pink-300 mask-heart"
-				aria-label="4 star"
-			/>
-			<input
-				type="radio"
-				name="rating"
-				value={5}
-				bind:group={rating}
-				class="mask bg-purple-300 mask-heart"
-				aria-label="5 star"
-			/>
-					<input
-				type="radio"
-				name="rating"
-				value={6}
-				bind:group={rating}
-				class="mask bg-blue-200 mask-heart"
-				aria-label="6 star"
-			/>
-			<input
-				type="radio"
-				name="rating"
-				value={7}
-				bind:group={rating}
-				class="mask bg-red-200 mask-heart"
-				aria-label="7 star"
-			/>
-			<input
-				type="radio"
-				name="rating"
-				value={8}
-				bind:group={rating}
-				class="mask bg-emerald-100 mask-heart"
-				aria-label="8 star"
-			/>
-			<input
-				type="radio"
-				name="rating"
-				value={9}
-				bind:group={rating}
-				class="mask bg-pink-200 mask-heart"
-				aria-label="9 star"
-			/>
-			<input
-				type="radio"
-				name="rating"
-				value={10}
-				bind:group={rating}
-				class="mask bg-violet-200 mask-heart"
-				aria-label="10 star"
-			/>
+			<input type="radio" name="rating" value={1} bind:group={rating} class="mask bg-amber-100 mask-heart" aria-label="1" />
+			<input type="radio" name="rating" value={2} bind:group={rating} class="mask bg-rose-300 mask-heart" aria-label="2" />
+			<input type="radio" name="rating" value={3} bind:group={rating} class="mask bg-teal-100 mask-heart" aria-label="3" />
+			<input type="radio" name="rating" value={4} bind:group={rating} class="mask bg-pink-300 mask-heart" aria-label="4" />
+			<input type="radio" name="rating" value={5} bind:group={rating} class="mask bg-purple-300 mask-heart" aria-label="5" />
+			<input type="radio" name="rating" value={6} bind:group={rating} class="mask bg-blue-200 mask-heart" aria-label="6" />
+			<input type="radio" name="rating" value={7} bind:group={rating} class="mask bg-red-200 mask-heart" aria-label="7" />
+			<input type="radio" name="rating" value={8} bind:group={rating} class="mask bg-emerald-100 mask-heart" aria-label="8" />
+			<input type="radio" name="rating" value={9} bind:group={rating} class="mask bg-pink-200 mask-heart" aria-label="9" />
+			<input type="radio" name="rating" value={10} bind:group={rating} class="mask bg-violet-200 mask-heart" aria-label="10" />
 		</div></label>
 	</div>
 

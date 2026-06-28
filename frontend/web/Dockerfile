@@ -6,7 +6,6 @@ WORKDIR /app
 # Set build-time environment variables
 ENV ORIGIN=http://localhost:5173
 ENV PUBLIC_API_URL=http://backend:8080
-ENV BETTER_AUTH_SECRET=61cd3f27-239d-4f01-9a7b-ec02b417a99a
 
 # Copy package files
 COPY package.json package-lock.json* ./
