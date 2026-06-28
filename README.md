@@ -2,79 +2,60 @@
 
 A self-hosted book tracking application with ratings, reading stats, and OpenLibrary integration.
 
-## Overview
-
-pageturner is a full-stack book logging app that lets you track books you've read, rate them, and view reading statistics. It integrates with [OpenLibrary](https://openlibrary.org) for book search and metadata lookup.
-
 ## Features
 
-- Track books with ratings, start/finish dates, page counts, and personal notes
+- Track books with ratings (0–10), start/finish dates, page counts, and personal notes
 - Search OpenLibrary by title or author
-- View reading statistics by genre, month, and average rating
-- Contribution-style chart of pages read over time
-- Commonplace book view for quotes and highlights
-- Export books to CSV or JSON
+- Commonplace book view for reading notes and highlights
 - REST API for all data endpoints
+- Docker Compose for one-command deployment
 
-## Architecture
+## Tech Stack
 
-```
-pageturner/
-├── backend/              # Go API server
-│   ├── internal/
-│   │   ├── api/          # HTTP handlers, middleware, routes (chi)
-│   │   ├── db/           # sqlc queries, schema, migrations
-│   │   ├── repository/   # Data access layer
-│   │   └── types/        # Shared domain types
-│   ├── migrations/       # PostgreSQL migrations (golang-migrate)
-│   ├── scripts/          # OpenLibrary data import
-│   └── sqlc.yaml         # sqlc code generation config
-├── frontend/             # SvelteKit web app
-│   └── web/
-│       ├── src/routes/   # SvelteKit routes (books, commonplace)
-│       └── e2e/          # Playwright tests
-├── bruno/                # API test collection
-└── docker-compose.yml    # Full stack orchestration
-```
-
-### Tech Stack
-
-- **Backend**: Go, chi router, pgx/v5, sqlc, golang-migrate, slog
-- **Frontend**: SvelteKit, TypeScript, Tailwind CSS, Better Auth, Drizzle ORM
-- **Database**: PostgreSQL 16
-- **Infrastructure**: Docker Compose, Playwright (e2e tests), Bruno (API tests)
+- **Backend**: Go, chi, pgx/v5, sqlc, goose, slog
+- **Frontend**: SvelteKit, TypeScript, Tailwind CSS, Better Auth
+- **Database**: PostgreSQL 16 (app data), SQLite (auth)
+- **Testing**: Playwright (e2e), Bruno (API)
 
 ## Quick Start
 
 ```bash
-# Set required environment variables
+# Generate an auth secret
 export BETTER_AUTH_SECRET=$(openssl rand -hex 16)
 
 # Build and start all services
-docker-compose up --build
+docker compose up --build
 ```
 
 Access the application at http://localhost:5173
 
 ### Services
 
-| Service    | Port | Description                          |
-|------------|------|--------------------------------------|
-| Frontend   | 5173 | SvelteKit web application            |
-| Backend    | 8080 | Go API server                        |
-| PostgreSQL | 5432 | Database                             |
+| Service    | Port | Description               |
+|------------|------|---------------------------|
+| Frontend   | 5173 | SvelteKit web application |
+| Backend    | 8080 | Go API server             |
+| PostgreSQL | 5432 | Database                  |
 
 ### Configuration
 
-The backend reads from `backend/config.yml` by default. Environment variables override config file values:
+Backend configuration via environment variables (overrides `backend/config.yml`):
 
 ```bash
 DB_HOST=localhost
 DB_PORT=5432
-DB_USER=booktracker
-DB_PASSWORD=booktracker
-DB_NAME=booktracker
+DB_USER=pageturner
+DB_PASSWORD=pageturner
+DB_NAME=pageturner
 SSL_MODE=disable
+```
+
+Frontend:
+
+```bash
+PUBLIC_API_URL=http://localhost:8080  # Backend API URL
+BETTER_AUTH_SECRET=                    # Auth signing key
+ORIGIN=http://localhost:5173          # SvelteKit origin
 ```
 
 ## Development
@@ -83,9 +64,9 @@ SSL_MODE=disable
 
 ```bash
 cd backend
-go run main.go          # Interactive prompt
-go run main.go --migrate  # Run migrations
-go run main.go S         # Start server
+go run main.go              # Interactive prompt
+go run main.go --migrate    # Run migrations only
+go run main.go S            # Start server directly
 ```
 
 ### Frontend
@@ -99,11 +80,44 @@ npm run dev
 ### Tests
 
 ```bash
-# Backend tests
+# Backend
 cd backend && go test ./...
 
-# Frontend e2e tests
+# Frontend e2e
 cd frontend/web && npx playwright test
+```
+
+## Docker Commands
+
+```bash
+docker compose up --build          # Build and start
+docker compose up -d --build       # Start in background
+docker compose logs -f             # View logs
+docker compose down                # Stop services
+docker compose down -v             # Stop and remove volumes
+docker compose build backend       # Rebuild specific service
+```
+
+## Project Structure
+
+```
+pageturner/
+├── backend/
+│   ├── internal/
+│   │   ├── api/            # HTTP handlers, middleware, routes
+│   │   ├── db/             # sqlc queries, schema, migrations
+│   │   ├── repository/     # Data access layer
+│   │   └── types/          # Shared domain types
+│   ├── migrations/         # PostgreSQL migrations (goose)
+│   ├── scripts/            # OpenLibrary data importer
+│   ├── sqlc.yaml
+│   └── Dockerfile
+├── frontend/
+│   └── web/
+│       ├── src/routes/     # SvelteKit routes
+│       └── Dockerfile
+├── bruno/                  # API test collection
+└── docker-compose.yml
 ```
 
 ## License
