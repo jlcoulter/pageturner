@@ -28,6 +28,51 @@
     return `${day}-${month}-${year}`;
   }
 
+  type SortKey = 'book' | 'rating' | 'startDate' | 'finishDate' | 'pages';
+  let sortKey: SortKey = 'book';
+  let sortAsc = true;
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      sortAsc = !sortAsc;
+    } else {
+      sortKey = key;
+      sortAsc = true;
+    }
+  }
+
+  $: sortedRows = [...rows].sort((a, b) => {
+    let va: string | number = '';
+    let vb: string | number = '';
+
+    switch (sortKey) {
+      case 'book':
+        va = a.book.toLowerCase();
+        vb = b.book.toLowerCase();
+        break;
+      case 'rating':
+        va = a.rating;
+        vb = b.rating;
+        break;
+      case 'startDate':
+        va = a.startDate ?? '';
+        vb = b.startDate ?? '';
+        break;
+      case 'finishDate':
+        va = a.finishDate ?? '';
+        vb = b.finishDate ?? '';
+        break;
+      case 'pages':
+        va = a.pages ?? 0;
+        vb = b.pages ?? 0;
+        break;
+    }
+
+    if (va < vb) return sortAsc ? -1 : 1;
+    if (va > vb) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
   let rows: Book[] = [];
 
   onMount(async () => {
@@ -51,16 +96,41 @@
     <thead>
       <tr>
         <th>#</th>
-        <th>Book</th>
-        <th>Rating</th>
-        <th>Start Date</th>
-        <th>Finish Date</th>
-        <th>Pages</th>
+        <th>
+          <button class="btn btn-ghost btn-xs" on:click={() => toggleSort('book')}>
+            Book
+            {#if sortKey === 'book'}<span>{sortAsc ? '↑' : '↓'}</span>{/if}
+          </button>
+        </th>
+        <th>
+          <button class="btn btn-ghost btn-xs" on:click={() => toggleSort('rating')}>
+            Rating
+            {#if sortKey === 'rating'}<span>{sortAsc ? '↑' : '↓'}</span>{/if}
+          </button>
+        </th>
+        <th>
+          <button class="btn btn-ghost btn-xs" on:click={() => toggleSort('startDate')}>
+            Start Date
+            {#if sortKey === 'startDate'}<span>{sortAsc ? '↑' : '↓'}</span>{/if}
+          </button>
+        </th>
+        <th>
+          <button class="btn btn-ghost btn-xs" on:click={() => toggleSort('finishDate')}>
+            Finish Date
+            {#if sortKey === 'finishDate'}<span>{sortAsc ? '↑' : '↓'}</span>{/if}
+          </button>
+        </th>
+        <th>
+          <button class="btn btn-ghost btn-xs" on:click={() => toggleSort('pages')}>
+            Pages
+            {#if sortKey === 'pages'}<span>{sortAsc ? '↑' : '↓'}</span>{/if}
+          </button>
+        </th>
       </tr>
     </thead>
 
     <tbody>
-      {#each rows as entry, i}
+      {#each sortedRows as entry, i}
         <tr>
           <th>{i + 1}</th>
           <td>{entry.book}</td>
