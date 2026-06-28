@@ -138,7 +138,7 @@
 		<p>
 			OpenLibrary dump files are tab-separated: each line has an ID, a tab, then a JSON object.
 			Get them from
-			<a href="https://openlibrary.org/developers/dumps.html" target="_blank" rel="noopener" class="link link-primary">
+			<a href="https://openlibrary.org/developers/dumps" target="_blank" rel="noopener" class="link link-primary">
 				openlibrary.org/developers/dumps
 			</a>.
 		</p>
