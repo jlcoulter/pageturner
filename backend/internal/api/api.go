@@ -159,18 +159,32 @@ func (s *Server) HandleOpenLibrarySearch(w http.ResponseWriter, r *http.Request)
 	var result any
 
 	switch searchBy {
-
 	default: // "both"
-		bothResults, err := s.OpenLibraryRepo.Search(r.Context(), req.Term)
+		ftsResults, err := s.OpenLibraryRepo.Search(r.Context(), req.Term)
 		if err != nil {
 			slog.Error("failed to search openlibrary", "error", err)
 			writeJsonError(w, http.StatusInternalServerError, "failed to search")
 			return
 		}
-		if bothResults == nil {
-			bothResults = []generated.SearchOpenLibraryRow{}
+		if ftsResults == nil {
+			ftsResults = []generated.SearchOpenLibraryRow{}
 		}
-		result = bothResults
+
+		// If FTS found results or query is long enough, skip trigram
+		if len(ftsResults) > 0 || len(req.Term) > 3 {
+			result = ftsResults
+		} else {
+			// Short query with no FTS results — try trigram prefix match
+			trgmResults, err := s.OpenLibraryRepo.SearchPrefix(r.Context(), req.Term)
+			if err != nil {
+				slog.Error("failed to search openlibrary by prefix", "error", err)
+				result = ftsResults
+			} else if trgmResults == nil {
+				result = ftsResults
+			} else {
+				result = trgmResults
+			}
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")

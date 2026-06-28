@@ -11,40 +11,17 @@ import (
 )
 
 const searchOpenLibrary = `-- name: SearchOpenLibrary :many
-(
-    SELECT
-        work_id,
-        title,
-        author_names,
-        ts_rank(search_vector, websearch_to_tsquery($1)) AS rank
-    FROM
-        openlibrary.search_documents
-    WHERE
-        search_vector @@ websearch_to_tsquery($1)
-    ORDER BY
-        rank DESC
-    LIMIT 20
-)
-UNION ALL
-(
-    SELECT
-        work_id,
-        title,
-        author_names,
-        (similarity(title, $1) + similarity(author_names, $1)) * 10 AS rank
-    FROM
-        openlibrary.search_documents
-    WHERE
-        title % $1
-        OR author_names % $1
-        AND NOT (
-            search_vector @@ websearch_to_tsquery($1)
-        )
-    ORDER BY
-        rank DESC
-    LIMIT 20
-)
-ORDER BY rank DESC
+SELECT
+    work_id,
+    title,
+    author_names,
+    ts_rank(search_vector, websearch_to_tsquery($1)) AS rank
+FROM
+    openlibrary.search_documents
+WHERE
+    search_vector @@ websearch_to_tsquery($1)
+ORDER BY
+    rank DESC
 LIMIT 20
 `
 
@@ -55,7 +32,8 @@ type SearchOpenLibraryRow struct {
 	Rank        float32
 }
 
-// Combined full-text and trigram search with ranked results
+// Full-text search using websearch_to_tsquery for smart query parsing
+// (handles quotes, OR, negation). Fast GIN index scan.
 func (q *Queries) SearchOpenLibrary(ctx context.Context, websearchToTsquery string) ([]SearchOpenLibraryRow, error) {
 	rows, err := q.db.Query(ctx, searchOpenLibrary, websearchToTsquery)
 	if err != nil {
@@ -65,6 +43,61 @@ func (q *Queries) SearchOpenLibrary(ctx context.Context, websearchToTsquery stri
 	var items []SearchOpenLibraryRow
 	for rows.Next() {
 		var i SearchOpenLibraryRow
+		if err := rows.Scan(
+			&i.WorkID,
+			&i.Title,
+			&i.AuthorNames,
+			&i.Rank,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const searchOpenLibraryPrefix = `-- name: SearchOpenLibraryPrefix :many
+SELECT
+    work_id,
+    title,
+    author_names,
+    similarity(title, $1) * 10 AS rank
+FROM
+    openlibrary.search_documents
+WHERE
+    title % $1
+    AND NOT EXISTS (
+        SELECT 1 FROM openlibrary.search_documents sd
+        WHERE sd.search_vector @@ websearch_to_tsquery($1)
+        LIMIT 1
+    )
+ORDER BY
+    rank DESC
+LIMIT 20
+`
+
+type SearchOpenLibraryPrefixRow struct {
+	WorkID      string
+	Title       sql.NullString
+	AuthorNames sql.NullString
+	Rank        int32
+}
+
+// Trigram similarity search for short queries / prefix matching
+// where full-text search can't help (e.g. "Pott" matching "Potter").
+// Only used as a fallback for queries <= 3 characters.
+func (q *Queries) SearchOpenLibraryPrefix(ctx context.Context, similarity interface{}) ([]SearchOpenLibraryPrefixRow, error) {
+	rows, err := q.db.Query(ctx, searchOpenLibraryPrefix, similarity)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SearchOpenLibraryPrefixRow
+	for rows.Next() {
+		var i SearchOpenLibraryPrefixRow
 		if err := rows.Scan(
 			&i.WorkID,
 			&i.Title,

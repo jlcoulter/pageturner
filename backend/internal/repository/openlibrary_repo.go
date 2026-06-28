@@ -14,7 +14,7 @@ func NewOpenLibraryRepo(q *generated.Queries) *OpenLibraryRepo {
 	return &OpenLibraryRepo{q: q}
 }
 
-// Search searches both title and author
+// Search searches both title and author using full-text search
 func (r *OpenLibraryRepo) Search(
 	ctx context.Context,
 	term string,
@@ -22,8 +22,17 @@ func (r *OpenLibraryRepo) Search(
 	if term == "" {
 		return nil, nil
 	}
-	var query string
-	query = term
-	return r.q.SearchOpenLibrary(ctx, query)
+	return r.q.SearchOpenLibrary(ctx, term)
+}
+
+// SearchPrefix searches by trigram similarity for short queries
+func (r *OpenLibraryRepo) SearchPrefix(
+	ctx context.Context,
+	term string,
+) ([]generated.SearchOpenLibraryPrefixRow, error) {
+	if term == "" {
+		return nil, nil
+	}
+	return r.q.SearchOpenLibraryPrefix(ctx, term)
 }
 
