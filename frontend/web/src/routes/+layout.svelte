@@ -20,7 +20,7 @@
 
 	<!-- Footer -->
 	<footer class="footer-center footer bg-base-300 p-4 text-base-content sm:footer-horizontal">
-		<p>Copyright © {new Date().getFullYear()} Bookplace</p>
+		<p>Pageturner</p>
 	</footer>
 </div>
 
