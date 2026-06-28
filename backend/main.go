@@ -43,7 +43,7 @@ func main() {
 	}
 
 	if action == "S" || action == "s" {
-		connStr := getDatabaseURL()
+		connStr := buildDatabaseURL()
 		pool, err := pgxpool.New(ctx, connStr)
 		if err != nil {
 			log.Fatalf("failed to create connection pool: %v", err)
@@ -94,7 +94,7 @@ func main() {
 	}
 }
 
-func getDatabaseURL() string {
+func buildDatabaseURL() string {
 	host := getEnv("DB_HOST", "localhost")
 	port := getEnv("DB_PORT", "5432")
 	user := getEnv("DB_USER", "pageturner")
