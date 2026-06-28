@@ -3,7 +3,7 @@
 	import 'prosekit/basic/typography.css';
 
 	type Mode = 'manual' | 'search';
-	let mode: Mode = 'manual';
+	let mode: Mode = 'search';
 
 	let selectedBook = '';
 	let manualTitle = '';
