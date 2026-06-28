@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bufio"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"io"
@@ -77,7 +78,7 @@ func (h *ImportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, _, err := r.FormFile("file")
+	file, header, err := r.FormFile("file")
 	if err != nil {
 		slog.Error("failed to get file from form", "error", err)
 		http.Error(w, "failed to get file", http.StatusBadRequest)
@@ -85,9 +86,22 @@ func (h *ImportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	slog.Info("starting import", "type", fileType)
+	// Decompress gzip files on the fly
+	var reader io.Reader = file
+	if strings.HasSuffix(strings.ToLower(header.Filename), ".gz") {
+		gzReader, err := gzip.NewReader(file)
+		if err != nil {
+			slog.Error("failed to open gzip reader", "error", err)
+			http.Error(w, "failed to decompress gzip file", http.StatusBadRequest)
+			return
+		}
+		defer gzReader.Close()
+		reader = gzReader
+	}
 
-	if err := h.importStream(r, file, fileType); err != nil {
+	slog.Info("starting import", "type", fileType, "filename", header.Filename)
+
+	if err := h.importStream(r, reader, fileType); err != nil {
 		slog.Error("import failed", "type", fileType, "error", err)
 		http.Error(w, "import failed: "+err.Error(), http.StatusInternalServerError)
 		return

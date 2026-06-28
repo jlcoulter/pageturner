@@ -91,7 +91,7 @@
 			<div class="card-body">
 				<h2 class="card-title">Authors</h2>
 				<p class="text-sm opacity-70">
-					Upload the OpenLibrary authors dump file (tab-separated, JSON per line).
+					Upload the OpenLibrary authors dump file. Supports .txt and .gz (gzip) files.
 				</p>
 				<div class="card-actions justify-end mt-4">
 					<button
@@ -114,7 +114,7 @@
 			<div class="card-body">
 				<h2 class="card-title">Works</h2>
 				<p class="text-sm opacity-70">
-					Upload the OpenLibrary works dump file (tab-separated, JSON per line).
+					Upload the OpenLibrary works dump file. Supports .txt and .gz (gzip) files.
 				</p>
 				<div class="card-actions justify-end mt-4">
 					<button
