@@ -21,6 +21,15 @@
 		thoughts: string | null;
 	};
 
+	function formatDate(iso: string | null): string {
+		if (!iso) return '-';
+		const d = new Date(iso);
+		const day = String(d.getDate()).padStart(2, '0');
+		const month = String(d.getMonth() + 1).padStart(2, '0');
+		const year = d.getFullYear();
+		return `${day}-${month}-${year}`;
+	}
+
 	let entries: Entry[] = [];
 	let loading = true;
 	let error: string | null = null;
@@ -68,7 +77,7 @@
 						<span>{entry.pages} pages</span>
 					</div>
 					<span>
-						{entry.startDate} → {entry.finishDate}
+						{formatDate(entry.startDate)} → {formatDate(entry.finishDate)}
 					</span>
 				</div>
 			</article>

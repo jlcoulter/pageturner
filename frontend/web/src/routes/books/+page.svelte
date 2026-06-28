@@ -19,6 +19,15 @@
     pages: number | null;
   };
 
+  function formatDate(iso: string | null): string {
+    if (!iso) return '-';
+    const d = new Date(iso);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  }
+
   let rows: Book[] = [];
 
   onMount(async () => {
@@ -56,8 +65,8 @@
           <th>{i + 1}</th>
           <td>{entry.book}</td>
           <td>{entry.rating}</td>
-          <td>{entry.startDate ?? '-'}</td>
-          <td>{entry.finishDate ?? '-'}</td>
+          <td>{formatDate(entry.startDate)}</td>
+          <td>{formatDate(entry.finishDate)}</td>
           <td>{entry.pages ?? '-'}</td>
         </tr>
       {/each}
