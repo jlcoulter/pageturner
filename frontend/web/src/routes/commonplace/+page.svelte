@@ -71,7 +71,7 @@
 					{@html entry.thoughts}
 				</div>
 
-				<div class="mt-3 flex items-center justify-between text-sm opacity-70">
+				<div class="mt-3 flex flex-col gap-1 text-sm opacity-70">
 					<div class="flex gap-4">
 						<span>🩷 {entry.rating}/10</span>
 						<span>{entry.pages} pages</span>
