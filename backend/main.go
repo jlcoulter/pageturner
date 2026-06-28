@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bookTracker/internal/api"
-	"bookTracker/internal/db/generated"
-	"bookTracker/internal/repository"
-	"bookTracker/migrations"
-	"bookTracker/scripts"
+	"github.com/jlcoulter/pageturner/internal/api"
+	"github.com/jlcoulter/pageturner/internal/db/generated"
+	"github.com/jlcoulter/pageturner/internal/repository"
+	"github.com/jlcoulter/pageturner/migrations"
+	"github.com/jlcoulter/pageturner/scripts"
 	"context"
 	"fmt"
 	"log"

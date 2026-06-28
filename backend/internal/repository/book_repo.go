@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"bookTracker/internal/db/generated"
-	"bookTracker/internal/types"
+	"github.com/jlcoulter/pageturner/internal/db/generated"
+	"github.com/jlcoulter/pageturner/internal/types"
 )
 
 type BookRepo struct {

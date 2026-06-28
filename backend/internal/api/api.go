@@ -12,9 +12,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"bookTracker/internal/db/generated"
-	"bookTracker/internal/repository"
-	"bookTracker/internal/types"
+	"github.com/jlcoulter/pageturner/internal/db/generated"
+	"github.com/jlcoulter/pageturner/internal/repository"
+	"github.com/jlcoulter/pageturner/internal/types"
 )
 
 type Server struct {

@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"bookTracker/internal/db/generated"
+	"github.com/jlcoulter/pageturner/internal/db/generated"
 )
 
 type OpenLibraryRepo struct {

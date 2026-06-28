@@ -1,7 +1,7 @@
 package migrations
 
 import (
-	//"bookTracker/config"
+	//"github.com/jlcoulter/pageturner/config"
 	"fmt"
 	//"go/build"
 	"log"

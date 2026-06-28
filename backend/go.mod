@@ -1,4 +1,4 @@
-module bookTracker
+module github.com/jlcoulter/pageturner
 
 go 1.25.5
 
