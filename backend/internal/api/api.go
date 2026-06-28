@@ -65,6 +65,9 @@ func (s *Server) Routes() http.Handler {
 	// Import endpoint
 	r.Post("/import", handler.NewImportHandler(s.Pool).ServeHTTP)
 
+	// Promote staging data to production
+	r.Post("/promote", handler.NewPromoteHandler(s.Pool).ServeHTTP)
+
 	return r
 }
 

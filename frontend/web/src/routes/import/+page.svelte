@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-
 	type ImportStatus = 'idle' | 'uploading' | 'success' | 'error';
 
 	let authorsStatus: ImportStatus = 'idle';
 	let worksStatus: ImportStatus = 'idle';
+	let promoteStatus: ImportStatus = 'idle';
 	let authorsMessage = '';
 	let worksMessage = '';
+	let promoteMessage = '';
 
 	async function uploadFile(fileType: 'authors' | 'works') {
 		const input = document.createElement('input');
@@ -16,7 +16,6 @@
 			const file = input.files?.[0];
 			if (!file) return;
 
-			const statusRef = fileType === 'authors' ? 'authors' : 'works';
 			if (fileType === 'authors') {
 				authorsStatus = 'uploading';
 				authorsMessage = `Uploading ${file.name}...`;
@@ -66,6 +65,31 @@
 			}
 		};
 		input.click();
+	}
+
+	async function promoteToProduction() {
+		promoteStatus = 'uploading';
+		promoteMessage = 'Promoting staging data to production... This may take several minutes.';
+
+		try {
+			const apiUrl = import.meta.env.PUBLIC_API_URL || 'http://localhost:8080';
+			const res = await fetch(`${apiUrl}/api/promote`, {
+				method: 'POST'
+			});
+
+			if (!res.ok) {
+				const data = await res.json().catch(() => ({ error: res.statusText }));
+				promoteStatus = 'error';
+				promoteMessage = `Failed: ${data.error || res.statusText}`;
+				return;
+			}
+
+			promoteStatus = 'success';
+			promoteMessage = 'Promotion complete. Search data is now live.';
+		} catch (err) {
+			promoteStatus = 'error';
+			promoteMessage = `Error: ${err}`;
+		}
 	}
 
 	function statusClass(status: ImportStatus): string {
@@ -130,6 +154,31 @@
 					<p class="text-sm mt-2 {statusClass(worksStatus)}">{worksMessage}</p>
 				{/if}
 			</div>
+		</div>
+	</div>
+
+	<!-- Promote -->
+	<div class="card bg-base-100 shadow-sm">
+		<div class="card-body">
+			<h2 class="card-title">Promote to Production</h2>
+			<p class="text-sm opacity-70">
+				After uploading both authors and works, promote the staging data into the production search index.
+				This builds the search documents, creates indexes, and swaps the tables atomically.
+				It may take several minutes depending on data size.
+			</p>
+			<div class="card-actions justify-end mt-4">
+				<button
+					class="btn btn-accent"
+					class:loading={promoteStatus === 'uploading'}
+					disabled={promoteStatus === 'uploading'}
+					on:click={promoteToProduction}
+				>
+					{promoteStatus === 'uploading' ? 'Promoting...' : 'Promote to Production'}
+				</button>
+			</div>
+			{#if promoteMessage}
+				<p class="text-sm mt-2 {statusClass(promoteStatus)}">{promoteMessage}</p>
+			{/if}
 		</div>
 	</div>
 
