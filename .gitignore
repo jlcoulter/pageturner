@@ -1,7 +1,35 @@
-scripts/input/data/*
-frontend/web/node_modules/*
-.env
-.env.*
+# Backend
+backend/target/
+
+# Frontend
+frontend/web/node_modules/
+frontend/web/.svelte-kit/
+frontend/web/build/
+frontend/web/.env
+frontend/web/.env.*
+!frontend/web/.env.example
+
+# Database
 *.db
 *.db-shm
 *.db-wal
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data
+scripts/input/data/
+openlibrarydata/
+
+# Environment
+.env
+.env.*
+!.env.example
