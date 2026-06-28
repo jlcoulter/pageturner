@@ -59,7 +59,7 @@ func main() {
 		bookRepo := repository.NewBookRepo(queries)
 		openLibraryRepo := repository.NewOpenLibraryRepo(queries)
 
-		server := api.NewServer(bookRepo, openLibraryRepo)
+		server := api.NewServer(bookRepo, openLibraryRepo, pool)
 		r := chi.NewRouter()
 		r.Mount("/api", server.Routes())
 

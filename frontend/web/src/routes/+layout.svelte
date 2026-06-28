@@ -10,6 +10,7 @@
 		<a class="btn text-xl btn-ghost" href="/">Home</a>
 		<a class="btn text-xl btn-ghost" href="/books">Books</a>
 		<a class="btn text-xl btn-ghost" href="/commonplace">Commonplace</a>
+		<a class="btn text-xl btn-ghost" href="/import">Import</a>
 	</nav>
 
 	<!-- Main content -->

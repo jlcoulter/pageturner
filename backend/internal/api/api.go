@@ -11,8 +11,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/jlcoulter/pageturner/internal/db/generated"
+	"github.com/jlcoulter/pageturner/internal/handler"
 	"github.com/jlcoulter/pageturner/internal/repository"
 	"github.com/jlcoulter/pageturner/internal/types"
 )
@@ -20,12 +22,14 @@ import (
 type Server struct {
 	BookRepo        *repository.BookRepo
 	OpenLibraryRepo *repository.OpenLibraryRepo
+	Pool            *pgxpool.Pool
 }
 
-func NewServer(bookRepo *repository.BookRepo, openLibraryRepo *repository.OpenLibraryRepo) *Server {
+func NewServer(bookRepo *repository.BookRepo, openLibraryRepo *repository.OpenLibraryRepo, pool *pgxpool.Pool) *Server {
 	return &Server{
 		BookRepo:        bookRepo,
 		OpenLibraryRepo: openLibraryRepo,
+		Pool:            pool,
 	}
 }
 
@@ -57,6 +61,9 @@ func (s *Server) Routes() http.Handler {
 
 	// OpenLibrary search endpoints
 	r.Post("/openlibrary/search", s.HandleOpenLibrarySearch)
+
+	// Import endpoint
+	r.Post("/import", handler.NewImportHandler(s.Pool).ServeHTTP)
 
 	return r
 }
